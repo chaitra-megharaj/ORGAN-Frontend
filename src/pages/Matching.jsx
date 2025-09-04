@@ -69,7 +69,7 @@ function Matching() {
             "box-shadow": "inset 0 1px 4px rgba(0,0,0,0.1)",
           }}
         >
-          Patient B ❤️ matched with Donor Y
+          Patient B ❤️ matched with a Donor Y
         </li>
       </ul>
     </section>
