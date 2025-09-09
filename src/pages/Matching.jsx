@@ -1,11 +1,21 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 
 function Matching(props) {
-  const [matches] = createSignal([
-    { id: 1, patient: "Patient A 🫁", donor: "Donor X", details: "Needs Lung transplant, Blood group O+" },
-    { id: 2, patient: "Patient B ❤️", donor: "Donor Y", details: "Needs Heart transplant, Blood group B+" },
-    { id: 3, patient: "Patient C 🧬", donor: "Donor Z", details: "Needs Kidney transplant, Blood group AB-" },
-  ]);
+  const [matches, setMatches] = createSignal([]);
+
+  // Fetch matches from backend
+  const fetchMatches = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/matches");
+      const data = await res.json();
+      setMatches(data);
+    } catch (err) {
+      console.error("❌ Error fetching matches:", err);
+    }
+  };
+
+  // Load once when component mounts
+  onMount(fetchMatches);
 
   return (
     <section
@@ -57,33 +67,39 @@ function Matching(props) {
           🔗 Current Matches
         </h2>
 
-        <ul style={{ listStyle: "none", padding: 0, margin: "0 auto", maxWidth: "500px" }}>
-          {matches().map((match) => (
-            <li
-              style={{
-                background: "#e6f0ff",
-                margin: "12px 0",
-                padding: "15px",
-                borderRadius: "10px",
-                border: "1px solid #90a4ae",
-                fontSize: "18px",
-                cursor: "pointer",
-                transition: "transform 0.2s, box-shadow 0.2s",
-              }}
-              onClick={() => props.onSelectMatch(match)}   // ✅ navigate to details
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-3px)";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "inset 0 1px 6px rgba(0,0,0,0.08)";
-              }}
-            >
-              {match.patient} matched with {match.donor}
-            </li>
-          ))}
-        </ul>
+        {matches().length === 0 ? (
+          <p style={{ color: "#777" }}>No matches yet. Register patients and donors to see results.</p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0, margin: "0 auto", maxWidth: "500px" }}>
+            {matches().map((match) => (
+              <li
+                style={{
+                  background: "#e6f0ff",
+                  margin: "12px 0",
+                  padding: "15px",
+                  borderRadius: "10px",
+                  border: "1px solid #90a4ae",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                }}
+                onClick={() => props.onSelectMatch && props.onSelectMatch(match)}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "inset 0 1px 6px rgba(0,0,0,0.08)";
+                }}
+              >
+                {match.patient} matched with {match.donor}  
+                <br />
+                <small style={{ color: "#555" }}>{match.details}</small>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );
