@@ -3,73 +3,61 @@ function MatchDetails(props) {
 
   if (!match) {
     return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        <h2>No Match Selected</h2>
-        <button
-          onClick={props.goBack}
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            borderRadius: "8px",
-            border: "none",
-            background: "#003366",
-            color: "#fff",
-            cursor: "pointer",
-          }}
-        >
-          🔙 Back to Matching
-        </button>
-      </div>
+      <section>
+        <h2>ℹ️ Match Details</h2>
+        <p>Select a match from the list to view details.</p>
+      </section>
     );
   }
 
   return (
-    <section
-      style={{
-        fontFamily: "Segoe UI, sans-serif",
-        color: "#333",
-        background: "linear-gradient(135deg, #e6f2ff, #d9ebff)",
-        minHeight: "100vh",
-        padding: "50px",
-        textAlign: "center",
-      }}
-    >
+    <section>
+      <h2>📝 Match Details</h2>
       <div
         style={{
-          background: "#fff",
-          padding: "30px",
-          borderRadius: "15px",
-          maxWidth: "600px",
-          margin: "0 auto",
-          boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+          border: "1px solid #ccc",
+          padding: "15px",
+          "border-radius": "8px",
+          "margin-top": "10px",
+          "background-color": "#f9f9f9",
         }}
       >
-        <h2 style={{ color: "#003366", fontSize: "28px", marginBottom: "20px" }}>
-          Match Details
-        </h2>
-        <p style={{ fontSize: "20px", marginBottom: "15px" }}>
-          <strong>Patient:</strong> {match.patient}
+        <h3>👩‍⚕️ Patient</h3>
+        <p>
+          <b>Name:</b> {match.patient}
         </p>
-        <p style={{ fontSize: "20px", marginBottom: "15px" }}>
-          <strong>Donor:</strong> {match.donor}
+        <p>
+          <b>Organ Needed:</b> {match.details.split(",")[0].replace("Needs ", "")}
         </p>
-        <p style={{ fontSize: "18px", color: "#555" }}>{match.details}</p>
+        <p>
+          <b>Blood Group:</b> {match.details.split("Blood group ")[1]}
+        </p>
 
-        <button
-          onClick={props.goBack}
-          style={{
-            marginTop: "25px",
-            padding: "12px 25px",
-            borderRadius: "8px",
-            border: "none",
-            background: "#003366",
-            color: "#fff",
-            cursor: "pointer",
-            fontSize: "16px",
-          }}
-        >
-          🔙 Back to Matching
-        </button>
+        <h3 style={{ "margin-top": "15px" }}>🫀 Donor</h3>
+        <p>
+          <b>Name:</b> {match.donor}
+        </p>
+        <p>
+          <b>Organ:</b> {match.details.split(",")[0].replace("Needs ", "")}
+        </p>
+        <p>
+          <b>Blood Group:</b> {match.details.split("Blood group ")[1]}
+        </p>
+
+        <h3 style={{ "margin-top": "15px" }}>📅 Other Info</h3>
+        <p>
+          <b>Matched At:</b>{" "}
+          {new Date(match.matchedAt).toLocaleString("en-IN", {
+            dateStyle: "full",
+            timeStyle: "short",
+          })}
+        </p>
+        <p>
+          <b>Patient ID:</b> {match.patientId}
+        </p>
+        <p>
+          <b>Donor ID:</b> {match.donorId}
+        </p>
       </div>
     </section>
   );
