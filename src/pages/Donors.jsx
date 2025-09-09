@@ -1,31 +1,64 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 
 function Donors() {
   const [dName, setDName] = createSignal("");
   const [dOrgan, setDOrgan] = createSignal("");
   const [dBlood, setDBlood] = createSignal("");
+  const [donors, setDonors] = createSignal([]);
 
-  const addDonor = (e) => {
-    e.preventDefault();
-    alert(
-      `✅ Donor Registered:\n\nName: ${dName()}\nOrgan Available: ${dOrgan()}\nBlood Group: ${dBlood()}`
-    );
-    setDName("");
-    setDOrgan("");
-    setDBlood("");
+  // ✅ Fetch donors from backend
+  const fetchDonors = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/donors");
+      const data = await res.json();
+      setDonors(data);
+    } catch (err) {
+      console.error("Error fetching donors:", err);
+    }
   };
+
+  // ✅ Add new donor (POST to backend)
+  const addDonor = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5000/api/donors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: dName(),
+          organ: dOrgan(),
+          blood: dBlood(),
+        }),
+      });
+
+      if (res.ok) {
+        const saved = await res.json();
+        alert(`✅ Donor Registered:\n\nName: ${saved.donor.name}\nOrgan: ${saved.donor.organ}\nBlood: ${saved.donor.blood}`);
+        fetchDonors(); // refresh donor list
+      } else {
+        alert("❌ Error registering donor");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("❌ Backend might be down");
+    }
+
+    setDName(""); setDOrgan(""); setDBlood("");
+  };
+
+  // ✅ Load donors when page loads
+  onMount(fetchDonors);
 
   return (
     <div
       style={{
         fontFamily: "Segoe UI, sans-serif",
-        color: "#333",
         background: "linear-gradient(135deg, #d9ebff, #e6f2ff)",
         minHeight: "100vh",
         paddingBottom: "50px",
       }}
     >
-      {/* Header Banner */}
+      {/* Header */}
       <div
         style={{
           background: "linear-gradient(135deg, #003366, #005580)",
@@ -36,15 +69,10 @@ function Donors() {
           boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
         }}
       >
-        <h1 style={{ margin: "0", fontSize: "32px" }}>
-          ❤️ Donor Registration Portal
-        </h1>
-        <p style={{ marginTop: "8px", fontSize: "16px", opacity: 0.9 }}>
-          Giving hope and saving lives through donation
-        </p>
+        <h1 style={{ margin: "0", fontSize: "32px" }}>❤️ Donor Registration Portal</h1>
       </div>
 
-      {/* Main Content Background Box */}
+      {/* Main */}
       <div
         style={{
           margin: "40px auto",
@@ -53,25 +81,11 @@ function Donors() {
           padding: "40px",
           borderRadius: "20px",
           boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "30px",
-          transition: "transform 0.3s, box-shadow 0.3s",
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = "scale(1.01)";
-          e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.25)";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.15)";
         }}
       >
-        {/* Registration Form */}
         <form
           onSubmit={addDonor}
           style={{
-            flex: "1",
             background: "#f9fbff",
             padding: "25px",
             borderRadius: "16px",
@@ -81,10 +95,6 @@ function Donors() {
             gap: "15px",
           }}
         >
-          <h2 style={{ color: "#003366", marginBottom: "10px" }}>
-            Register New Donor
-          </h2>
-
           <input
             type="text"
             placeholder="Donor Name"
@@ -96,7 +106,10 @@ function Donors() {
               borderRadius: "8px",
               border: "1px solid #bbb",
               fontSize: "14px",
+              transition: "0.3s",
             }}
+            onMouseOver={(e) => (e.target.style.border = "1px solid #004080")}
+            onMouseOut={(e) => (e.target.style.border = "1px solid #bbb")}
           />
           <input
             type="text"
@@ -109,11 +122,14 @@ function Donors() {
               borderRadius: "8px",
               border: "1px solid #bbb",
               fontSize: "14px",
+              transition: "0.3s",
             }}
+            onMouseOver={(e) => (e.target.style.border = "1px solid #004080")}
+            onMouseOut={(e) => (e.target.style.border = "1px solid #bbb")}
           />
           <input
             type="text"
-            placeholder="Blood Group (e.g., A+, O-)"
+            placeholder="Blood Group"
             value={dBlood()}
             onInput={(e) => setDBlood(e.target.value)}
             required
@@ -122,9 +138,11 @@ function Donors() {
               borderRadius: "8px",
               border: "1px solid #bbb",
               fontSize: "14px",
+              transition: "0.3s",
             }}
+            onMouseOver={(e) => (e.target.style.border = "1px solid #004080")}
+            onMouseOut={(e) => (e.target.style.border = "1px solid #bbb")}
           />
-
           <button
             type="submit"
             style={{
@@ -138,89 +156,46 @@ function Donors() {
               fontSize: "15px",
               transition: "0.3s",
             }}
-            onMouseOver={(e) =>
-              (e.target.style.background =
-                "linear-gradient(90deg, #002b5c, #004d80)")
-            }
-            onMouseOut={(e) =>
-              (e.target.style.background =
-                "linear-gradient(90deg, #004080, #0066b2)")
-            }
+            onMouseOver={(e) => (e.target.style.background = "linear-gradient(90deg,#0066b2,#004080)")}
+            onMouseOut={(e) => (e.target.style.background = "linear-gradient(90deg,#004080,#0066b2)")}
           >
             ➕ Register Donor
           </button>
-
-          <p style={{ fontSize: "12px", color: "#777", marginTop: "10px" }}>
-            ⚠️ Donor information will remain confidential and only used for
-            patient–donor matching.
-          </p>
         </form>
 
-        {/* Sidebar Info */}
-        <aside
-          style={{
-            flex: "0.8",
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
-          }}
-        >
-          {/* Info Box 1 */}
-          <div
-            style={{
-              background: "#e6f0ff",
-              padding: "20px",
-              borderRadius: "16px",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-              transition: "transform 0.3s, box-shadow 0.3s",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow =
-                "0 6px 16px rgba(0,0,0,0.15)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 2px 10px rgba(0,0,0,0.05)";
-            }}
-          >
-            <h3 style={{ color: "#003366" }}>💡 Donor Guidelines</h3>
-            <ul style={{ paddingLeft: "20px", lineHeight: "1.6" }}>
-              <li>Ensure you are in good health before registering.</li>
-              <li>Clearly specify the organ(s) available for donation.</li>
-              <li>Enter accurate blood group details.</li>
-              <li>All data remains confidential and secure.</li>
+        {/* Registered Donors */}
+        <div style={{ marginTop: "40px" }}>
+          <h2 style={{ color: "#003366" }}>📋 Registered Donors</h2>
+          {donors().length === 0 ? (
+            <p style={{ color: "#777" }}>No donors yet.</p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: "0" }}>
+              {donors().map((d) => (
+                <li
+                  style={{
+                    padding: "12px",
+                    marginBottom: "10px",
+                    borderRadius: "8px",
+                    background: "#fff",
+                    border: "1px solid #ddd",
+                    transition: "0.3s",
+                    cursor: "pointer",
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.background = "#e6f0ff";
+                    e.target.style.border = "1px solid #004080";
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.background = "#fff";
+                    e.target.style.border = "1px solid #ddd";
+                  }}
+                >
+                  <strong>{d.name}</strong> — {d.organ} ({d.blood})
+                </li>
+              ))}
             </ul>
-          </div>
-
-          {/* Info Box 2 */}
-          <div
-            style={{
-              background: "#f0f8ff",
-              padding: "20px",
-              borderRadius: "16px",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-              transition: "transform 0.3s, box-shadow 0.3s",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow =
-                "0 6px 16px rgba(0,0,0,0.15)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 2px 10px rgba(0,0,0,0.05)";
-            }}
-          >
-            <h3 style={{ color: "#004080" }}>🌍 Impact of Donation</h3>
-            <p style={{ lineHeight: "1.6" }}>
-              A single donor can save up to 8 lives. Organ donation is the
-              greatest gift one can give to humanity.
-            </p>
-          </div>
-        </aside>
+          )}
+        </div>
       </div>
     </div>
   );
